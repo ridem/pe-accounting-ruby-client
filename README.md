@@ -38,9 +38,15 @@ puts clients
 # {"id"=>12345, "foreign-id"=>"", "name"=>"fdsmfkls", "contact"=>"fslmdkfsdmlkf", "address"=>{"address1"=>"sdfmsdlmfksdm", "address2"=>"", "zip-code"=>"12345", "state"=>"msdlfkdsmlk", "country"=>"sdflkdslkfj"}, "email"=>"sdflkjsfs@fdsd.fr", "country-code"=>"FR", "accountnr"=>0, "payment-days"=>14, "orgno"=>"123456-1234", "phone"=>"+33123456789", "user"=>{"id"=>12345}, "delivery-type"=>"Email", "vat-nr"=>"", "template"=>{"id"=>1234}, "active"=>true},
 # {"id"=>9876, "foreign-id"=>"", "name"=>"fdsmfkls", "contact"=>"fslmdkfsdmlkf", "address"=>{"address1"=>"sdfmsdlmfksdm", "address2"=>"", "zip-code"=>"12345", "state"=>"msdlfkdsmlk", "country"=>"sdflkdslkfj"}, "email"=>"sdflkjsfs@fdsd.fr", "country-code"=>"FR", "accountnr"=>0, "payment-days"=>14, "orgno"=>"123456-1235", "phone"=>"+33123456789", "user"=>{"id"=>9875}, "delivery-type"=>"Email", "vat-nr"=>"", "template"=>{"id"=>1234}, "active"=>true}
 # ]
+
+john = clients.first
+john["name"] = "John Doe"
+
+## Updates a client with the new name
+api.post(company_id: 123, request: "client/#{john["id"]}", payload: john)
+
 ```
-
-
+Accepted methods: `get`, `put`, `post`, `delete`. Only `put` and `post` accept a payload.
 
 ## Development
 
