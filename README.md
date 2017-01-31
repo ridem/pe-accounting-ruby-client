@@ -1,6 +1,7 @@
-# PeAccounting::Client
+# PE Accounting Ruby Client
 
 A simple low-level wrapper for PE Accounting's public API.
+It's publicly available at https://my.accounting.pe/api/v1/doc
  
 
 ## Installation
@@ -8,7 +9,7 @@ A simple low-level wrapper for PE Accounting's public API.
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'pe_accounting-client'
+gem 'pe_accounting'
 ```
 
 And then execute:
@@ -17,11 +18,29 @@ And then execute:
 
 Or install it yourself as:
 
-    $ gem install pe_accounting-client
+    $ gem install pe_accounting
 
 ## Usage
 
-TODO: Write usage instructions here
+```ruby
+require 'pe_accounting'
+
+# Initialize the API
+api = PeAccounting::Client.new('your-api-token')
+
+# Fetch a list of all the given company's clients. Returns a ruby Array or Hash, depending on the ressource's specifications
+clients = api.get(company_id: 123, request: 'client')
+
+puts clients
+
+##
+# [
+# {"id"=>12345, "foreign-id"=>"", "name"=>"fdsmfkls", "contact"=>"fslmdkfsdmlkf", "address"=>{"address1"=>"sdfmsdlmfksdm", "address2"=>"", "zip-code"=>"12345", "state"=>"msdlfkdsmlk", "country"=>"sdflkdslkfj"}, "email"=>"sdflkjsfs@fdsd.fr", "country-code"=>"FR", "accountnr"=>0, "payment-days"=>14, "orgno"=>"123456-1234", "phone"=>"+33123456789", "user"=>{"id"=>12345}, "delivery-type"=>"Email", "vat-nr"=>"", "template"=>{"id"=>1234}, "active"=>true},
+# {"id"=>9876, "foreign-id"=>"", "name"=>"fdsmfkls", "contact"=>"fslmdkfsdmlkf", "address"=>{"address1"=>"sdfmsdlmfksdm", "address2"=>"", "zip-code"=>"12345", "state"=>"msdlfkdsmlk", "country"=>"sdflkdslkfj"}, "email"=>"sdflkjsfs@fdsd.fr", "country-code"=>"FR", "accountnr"=>0, "payment-days"=>14, "orgno"=>"123456-1235", "phone"=>"+33123456789", "user"=>{"id"=>9875}, "delivery-type"=>"Email", "vat-nr"=>"", "template"=>{"id"=>1234}, "active"=>true}
+# ]
+```
+
+
 
 ## Development
 
