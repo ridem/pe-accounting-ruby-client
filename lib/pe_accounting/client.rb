@@ -1,5 +1,3 @@
-require 'pe_accounting/client/version'
-
 require 'rest-client'
 require 'multi_json'
 
@@ -24,8 +22,8 @@ module PeAccounting
       unless kwargs[:company_id] && kwargs[:request] && kwargs[:payload]
         raise PeAccouningError, 'You must specify a company_id, a request, and a payload'
       end
-
-      request(:put, url(kwargs[:company_id], kwargs[:request]), kwargs[:payload]))
+      request(:put, url(kwargs[:company_id], kwargs[:request]),
+              kwargs[:payload])
     end
 
     def post(kwargs = {})
@@ -33,8 +31,8 @@ module PeAccounting
         raise PeAccouningError, 'You must specify a company_id, a request, and a payload'
       end
 
-      request(:post, url(kwargs[:company_id], kwargs[:request]), kwargs[:payload]))
-
+      request(:post, url(kwargs[:company_id], kwargs[:request]),
+              kwargs[:payload])
     end
 
     def delete(kwargs = {})
@@ -54,7 +52,7 @@ module PeAccounting
       res = RestClient::Request.execute(method: method, url: url,
                                         payload: MultiJson.dump(payload),
                                         headers: { content_type: :json,
-                                          x_token: @token })
+                                                   x_token: @token })
       hash = MultiJson.load(res.body)
       hash.length == 1 ? hash.values.first : hash
     end

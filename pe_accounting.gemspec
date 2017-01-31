@@ -1,12 +1,12 @@
 # coding: utf-8
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
-require 'pe_accounting/client/version'
+require 'pe_accounting/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = 'pe_accounting-client'
-  spec.version       = PeAccounting::Client::VERSION
-  spec.author       = 'Mehdi Rejraji'
+  spec.name          = 'pe_accounting'
+  spec.version       = PeAccounting::VERSION
+  spec.author        = 'Mehdi Rejraji'
   spec.email         = 'mehdi.rejraji@gmail.com'
 
   spec.summary       = "A simple Ruby wrapper for PE Accounting's public API."
