@@ -1,5 +1,7 @@
 # PE Accounting Ruby Client
 
+[![Gem](https://img.shields.io/gem/v/pe_accounting.svg?style=flat-square)](https://rubygems.org/gems/pe_accounting)
+
 A simple low-level wrapper for PE Accounting's public API.
 It's publicly available at https://my.accounting.pe/api/v1/doc
  
