@@ -6,6 +6,7 @@ A simple low-level wrapper for PE Accounting's public API.
 It's publicly available at https://my.accounting.pe/api/v1/doc
  
 
+
 ## Installation
 
 Add this line to your application's Gemfile:
