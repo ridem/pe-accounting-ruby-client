@@ -1,98 +1,152 @@
-require 'rest-client'
 require 'multi_json'
 require 'gyoku'
 require 'nori'
+require 'uri'
+require 'net/http'
 
 module PeAccounting
   class PeAccouningError < StandardError; end
 
   class Client
 
-
-    # Initializes the API Client
+    # Initializes an API Client
     #
-    # @param [String] token - API token
-    # @param [Symbol] format - :xml or :json - :xml by default
-    # @param [Type] endpoint = 'https://my.accounting.pe/api/v1/'. This shouldn't change
+    # @param token [String] The API token
+    # @param company_id [Integer] The company ID
+    # @param format [Symbol] The format by which the wrapper will interact with the API.
+    #   `:xml` or `:json - leave empty for :json by default
+    # @param endpoint [String] 'https://my.accounting.pe/api/v1/' by default. This shouldn't change.
     # @return [PeAccounting::Client] A PeAccounting::Client object
-    def initialize(token, format = :xml, endpoint = 'https://my.accounting.pe/api/v1/')
-      unless [:xml,:json].include?(format)
-        raise PeAccouningError, 'You must specify a Company ID and a request'
-      end
+    #
+    # @example
+    #   api = PeAccounting::Client.new("your-api-token", 123)
+    def initialize(token, company_id, format = :json, endpoint = 'https://my.accounting.pe/api/v1/')
+      @company_id = company_id
       @format = format
       @token = token
       @endpoint = endpoint
     end
 
 
-    def get(kwargs = {})
-      unless kwargs[:company_id] && kwargs[:request]
-        raise PeAccouningError, 'You must specify a Company ID and a request'
+    # Performs a GET request
+    #
+    # @param request [String] The endpoint to perform the request to, e.g. `client`
+    # @return [Hash, Array] A hash or an array, depending on the specs
+    #
+    # @example
+    #   api.get('client')
+    def get(request)
+      unless request
+        raise PeAccouningError, 'You must specify a request'
       end
 
-      request(:get, url(kwargs[:company_id], kwargs[:request]))
+      request(:get, uri(request))
     end
 
-    def put(kwargs = {})
-      unless kwargs[:company_id] && kwargs[:request] && kwargs[:payload]
-        raise PeAccouningError, 'You must specify a company_id, a request, and a payload'
+    # Performs a PUT request
+    #
+    # @param request [String] opts = {} The options to pass to the method
+    # @param payload [Hash] A native Ruby hash describing the data to send
+    # @param root [String] The enclosing root of the object (useful for xml)
+    # @return [Hash] A hash containing the result of the request
+    #
+    # @example
+    #   api.put('client', {name: "John Doe"})
+    def put(request, payload = {}, root = nil)
+      unless request
+        raise PeAccouningError, 'You must specify a request'
       end
-      request(:put, url(kwargs[:company_id], kwargs[:request]),
-              kwargs[:payload])
+      payload = (root ? {root => payload} : payload)
+      request(:put, uri(request), payload)
     end
 
-    def post(kwargs = {})
-      unless kwargs[:company_id] && kwargs[:request] && kwargs[:payload]
-        raise PeAccouningError, 'You must specify a company_id, a request, and a payload'
+    # Performs a POST request
+    #
+    # (see #put)
+    #
+    # @example
+    #   api.post('client/123', {name: "John Doe"})
+    def post(request, payload = {}, root = nil)
+      unless request
+        raise PeAccouningError, 'You must specify a request'
       end
-
-      request(:post, url(kwargs[:company_id], kwargs[:request]),
-              kwargs[:payload])
+      payload = (root ? {root => payload} : payload)
+      request(:post, uri(request), payload)
     end
 
-    def delete(kwargs = {})
-      unless kwargs[:company_id] && kwargs[:request]
-        raise PeAccouningError, 'You must specify a Company ID and a request'
+    # Performs a DELETE request
+    #
+    # (see #get)
+    #
+    # @example
+    #   api.delete('client/123')
+    def delete(request)
+      unless request
+        raise PeAccouningError, 'You must specify a request'
       end
-      request(:delete, url(kwargs[:company_id], kwargs[:request]))
+      request(:delete, uri(request))
     end
 
     private
 
-    def url(company_id, path)
-      "#{@endpoint}company/#{company_id}/#{path}"
+    def uri(path)
+      URI.parse("#{@endpoint}company/#{@company_id}/#{path}")
+    end
+
+    def denilize(h)
+      h.each_with_object({}) { |(k,v),g|
+        g[k] = (Hash === v) ?  denilize(v) : v ? v : '' }
     end
 
     def generate_payload(payload)
-      if payload
-        if @format == xml
-          Gyoku.xml(payload)
-        else
-          MultiJson.dump(payload)
-        end
+      if @format == :xml
+        Gyoku.xml(payload)
+      else
+        MultiJson.dump(payload)
       end
     end
 
     def handle_body(body)
       if @format == :xml
-        parser = Nori.new
-        parser.parse(body)
+        parser = Nori.new(convert_dashes_to_underscores: false,
+        empty_tag_value: "")
+        hash = parser.parse(body)
       else
         hash = MultiJson.load(body)
-        hash.length == 1 ? hash.values.first : hash
+      end
+
+      while hash.is_a?(Hash) && hash.length == 1
+        hash = hash.values.first
+      end
+      hash
+
+    end
+
+    def request(method, uri, payload = nil)
+      req = Net::HTTP.const_get(method.capitalize, false).new(uri)
+      req.content_type = "application/#{@format.downcase}"
+      req['X-Token'] = @token
+      req.body = generate_payload(payload) if payload
+
+      res = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
+        http.request(req)
+      end
+
+      case res
+      when Net::HTTPSuccess
+        return handle_body(res.body)
+      else
+        raise PeAccouningError, (res.read_body ? handle_body(res.body) : res)
       end
     end
 
-    def request(method, url, payload = nil)
-      res = RestClient::Request.execute(method: method, url: url,
-                                        payload: generate_payload(payload),
-                                        headers: { content_type: @format,
-                                                   x_token: @token })
-      handle_body(res.body)
+    # Converts a File to its hexadecimal representation
+    #
+    # @param f [File] A binary file.
+    # @return [String] A string representing the file in hexadecimal form.
+    def file_to_hex(f)
+      f.read.unpack('H*').first
     end
 
-    def file_to_json(file)
-      file.read.each_byte.map { |b| b.to_s(16) }.to_json
-    end
   end
 end

@@ -4,7 +4,7 @@
 
 A simple low-level wrapper for PE Accounting's public API.
 It's publicly available at https://my.accounting.pe/api/v1/doc
- 
+
 
 
 ## Installation
@@ -28,25 +28,19 @@ Or install it yourself as:
 ```ruby
 require 'pe_accounting'
 
-# Initialize the API
-api = PeAccounting::Client.new('your-api-token')
+# Initialize the API, the 3rd parameter is one of (:json, :xml) and sets how the wrapper will interact with the API.
+>> api = PeAccounting::Client.new('your-api-token', 123)
+=> <PeAccounting::Client:0x007fd6b7ac74d0 @company_id=123, @format=:json, @token="your-api-token", @endpoint="https://my.accounting.pe/api/v1/">
 
 # Fetch a list of all the given company's clients. Returns a ruby Array or Hash, depending on the ressource's specifications
-clients = api.get(company_id: 123, request: 'client')
-
-puts clients
-
-##
-# [
-# {"id"=>12345, "foreign-id"=>"", "name"=>"fdsmfkls", "contact"=>"fslmdkfsdmlkf", "address"=>{"address1"=>"sdfmsdlmfksdm", "address2"=>"", "zip-code"=>"12345", "state"=>"msdlfkdsmlk", "country"=>"sdflkdslkfj"}, "email"=>"sdflkjsfs@fdsd.fr", "country-code"=>"FR", "accountnr"=>0, "payment-days"=>14, "orgno"=>"123456-1234", "phone"=>"+33123456789", "user"=>{"id"=>12345}, "delivery-type"=>"Email", "vat-nr"=>"", "template"=>{"id"=>1234}, "active"=>true},
-# {"id"=>9876, "foreign-id"=>"", "name"=>"fdsmfkls", "contact"=>"fslmdkfsdmlkf", "address"=>{"address1"=>"sdfmsdlmfksdm", "address2"=>"", "zip-code"=>"12345", "state"=>"msdlfkdsmlk", "country"=>"sdflkdslkfj"}, "email"=>"sdflkjsfs@fdsd.fr", "country-code"=>"FR", "accountnr"=>0, "payment-days"=>14, "orgno"=>"123456-1235", "phone"=>"+33123456789", "user"=>{"id"=>9875}, "delivery-type"=>"Email", "vat-nr"=>"", "template"=>{"id"=>1234}, "active"=>true}
-# ]
+>> clients = api.get('client')
+=> [ {"id"=>12345, "foreign-id"=>"", "name"=>"fdsmfkls", "contact"=>"fslmdkfsdmlkf", "address"=>{"address1"=>"sdfmsdlmfksdm", "address2"=>"", "zip-code"=>"12345", "state"=>"msdlfkdsmlk", "country"=>"sdflkdslkfj"}, "email"=>"sdflkjsfs@fdsd.fr", "country-code"=>"FR", "accountnr"=>0, "payment-days"=>14, "orgno"=>"123456-1234", "phone"=>"+33123456789", "user"=>{"id"=>12345}, "delivery-type"=>"Email", "vat-nr"=>"", "template"=>{"id"=>1234}, "active"=>true}, {"id"=>9876, "foreign-id"=>"", "name"=>"fdsmfkls", "contact"=>"fslmdkfsdmlkf", "address"=>{"address1"=>"sdfmsdlmfksdm", "address2"=>"", "zip-code"=>"12345", "state"=>"msdlfkdsmlk", "country"=>"sdflkdslkfj"}, "email"=>"sdflkjsfs@fdsd.fr", "country-code"=>"FR", "accountnr"=>0, "payment-days"=>14, "orgno"=>"123456-1235", "phone"=>"+33123456789", "user"=>{"id"=>9875}, "delivery-type"=>"Email", "vat-nr"=>"", "template"=>{"id"=>1234}, "active"=>true} ]
 
 john = clients.first
 john["name"] = "John Doe"
 
 ## Updates a client with the new name
-api.post(company_id: 123, request: "client/#{john["id"]}", payload: john)
+api.post("client/#{john['id']}", john)
 
 ```
 Accepted methods: `get`, `put`, `post`, `delete`. Only `put` and `post` accept a payload.
