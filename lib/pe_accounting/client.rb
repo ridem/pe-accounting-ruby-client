@@ -45,7 +45,7 @@ module PeAccounting
 
     # Performs a PUT request
     #
-    # @param request [String] opts = {} The options to pass to the method
+    # @param request [String] The options to pass to the method
     # @param payload [Hash] A native Ruby hash describing the data to send
     # @param root [String] The enclosing root of the object (useful for xml)
     # @return [Hash] A hash containing the result of the request
@@ -87,23 +87,25 @@ module PeAccounting
       request(:delete, uri(request))
     end
 
-    private
-
-    def uri(path)
-      URI.parse("#{@endpoint}company/#{@company_id}/#{path}")
-    end
-
-    def denilize(h)
-      h.each_with_object({}) { |(k,v),g|
-        g[k] = (Hash === v) ?  denilize(v) : v ? v : '' }
-    end
-
+    # Public for debugging purposes
     def generate_payload(payload)
       if @format == :xml
         Gyoku.xml(payload)
       else
         MultiJson.dump(payload)
       end
+    end
+
+    private
+
+    def uri(path)
+      URI.parse("#{@endpoint}company/#{@company_id}/#{path}")
+    end
+
+    # Unused for now, but can be useful for object editing if we go more high-level
+    def denilize(h)
+      h.each_with_object({}) { |(k,v),g|
+        g[k] = (Hash === v) ?  denilize(v) : v ? v : '' }
     end
 
     def handle_body(body)
@@ -115,11 +117,13 @@ module PeAccounting
         hash = MultiJson.load(body)
       end
 
-      while hash.is_a?(Hash) && hash.length == 1
-        hash = hash.values.first
+      # Try to get a more proper ruby object when doing JSON 
+      if @format == :json
+        while hash.is_a?(Hash) && hash.length == 1
+          hash = hash.values.first
+        end
       end
       hash
-
     end
 
     def request(method, uri, payload = nil)
@@ -139,14 +143,5 @@ module PeAccounting
         raise PeAccouningError, (res.read_body ? handle_body(res.body) : res)
       end
     end
-
-    # Converts a File to its hexadecimal representation
-    #
-    # @param f [File] A binary file.
-    # @return [String] A string representing the file in hexadecimal form.
-    def file_to_hex(f)
-      f.read.unpack('H*').first
-    end
-
   end
 end
